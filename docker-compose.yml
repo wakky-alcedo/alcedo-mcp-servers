@@ -17,5 +17,5 @@ services:
 
 networks:
   default:
-    name: alcedo-net
+    name: alcedo-personal-app_default
     external: true  # alcedo-personal-app の docker-compose と同一ネットワークに参加させる場合
