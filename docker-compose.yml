@@ -1,0 +1,21 @@
+services:
+  task-mcp:
+    build:
+      context: .
+      dockerfile: task-mcp/Dockerfile
+    ports:
+      - "8800:8800"
+    environment:
+      - MCP_TRANSPORT=streamable-http
+      - MCP_PORT=8800
+      - TASK_API_BASE_URL=http://backend:8787  # alcedo-personal-app の pc-server サービス名を想定
+      - TASK_API_KEY=${TASK_API_KEY}
+    restart: always
+
+  # 今後 firefly-mcp, monica-mcp 等を追加する際は、同じパターンで
+  # ここにサービスを足していく（ポート番号は 8801, 8802... のようにずらす）
+
+networks:
+  default:
+    name: alcedo-net
+    external: true  # alcedo-personal-app の docker-compose と同一ネットワークに参加させる場合
