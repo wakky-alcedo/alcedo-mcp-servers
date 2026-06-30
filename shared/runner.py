@@ -25,6 +25,13 @@ def run_server(mcp_instance) -> None:
     if transport == "streamable-http":
         mcp_instance.settings.host = os.environ.get("MCP_HOST", "0.0.0.0")
         mcp_instance.settings.port = int(os.environ.get("MCP_PORT", "8800"))
+
+        # IP 直打ちや Docker 内部ホスト名でのアクセスを通すため allowed_hosts を開放する。
+        # MCP SDK >= 1.2 の FastMCP.Settings に存在するフィールド。
+        # 古い SDK では属性自体がないため hasattr でガードする。
+        if hasattr(mcp_instance.settings, "allowed_hosts"):
+            mcp_instance.settings.allowed_hosts = ["*"]
+
         mcp_instance.run(transport="streamable-http")
     else:
         mcp_instance.run(transport="stdio")
