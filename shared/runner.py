@@ -26,11 +26,11 @@ def run_server(mcp_instance) -> None:
         mcp_instance.settings.host = os.environ.get("MCP_HOST", "0.0.0.0")
         mcp_instance.settings.port = int(os.environ.get("MCP_PORT", "8800"))
 
-        # IP 直打ちや Docker 内部ホスト名でのアクセスを通すため allowed_hosts を開放する。
-        # MCP SDK >= 1.2 の FastMCP.Settings に存在するフィールド。
-        # 古い SDK では属性自体がないため hasattr でガードする。
-        if hasattr(mcp_instance.settings, "allowed_hosts"):
-            mcp_instance.settings.allowed_hosts = ["*"]
+        # DNS rebinding protection を無効化し、IP 直打ちや Docker 内部ホスト名を許可する。
+        # MCP SDK 1.28 では transport_security.enable_dns_rebinding_protection が
+        # デフォルト True で localhost 系のみ許可するため、外部 IP からのアクセスが 421 になる。
+        if hasattr(mcp_instance.settings, "transport_security"):
+            mcp_instance.settings.transport_security.enable_dns_rebinding_protection = False
 
         mcp_instance.run(transport="streamable-http")
     else:
