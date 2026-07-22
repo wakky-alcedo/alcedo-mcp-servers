@@ -12,6 +12,19 @@ services:
       - TASK_API_KEY=${TASK_API_KEY}
     restart: always
 
+  memo-mcp:
+    build:
+      context: .
+      dockerfile: memo-mcp/Dockerfile
+    ports:
+      - "8804:8804"
+    environment:
+      - MCP_TRANSPORT=streamable-http
+      - MCP_PORT=8804
+      - MEMO_API_BASE_URL=http://backend:8787
+      - MEMO_API_KEY=${MEMO_API_KEY}
+    restart: always
+
   # 今後 firefly-mcp, monica-mcp 等を追加する際は、同じパターンで
   # ここにサービスを足していく（ポート番号は 8801, 8802... のようにずらす）
 
