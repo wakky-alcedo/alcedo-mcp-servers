@@ -38,3 +38,28 @@ def _client() -> httpx.Client:
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+@mcp.tool()
+def list_memos(limit: int = 50, since: Optional[str] = None) -> dict[str, Any]:
+    """
+    メモ一覧を取得する。
+
+    Args:
+        limit: 取得件数の上限。デフォルトは50
+        since: この日時以降に更新されたメモのみ取得する (ISO 8601)。省略可
+
+    Returns:
+        メモのリストと次ページ用カーソル
+    """
+    params: dict[str, Any] = {"limit": limit}
+    if since is not None:
+        params["since"] = since
+
+    with _client() as c:
+        resp = c.get("/api/v1/memos", params=params)
+        resp.raise_for_status()
+        data = resp.json()
+
+    memos = data.get("memos", [])
+    return {"count": len(memos), "memos": memos, "next_cursor": data.get("nextCursor")}
