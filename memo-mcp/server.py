@@ -125,3 +125,32 @@ def update_memo(memo_id: str, body: str) -> dict[str, Any]:
         data = resp.json()
 
     return {"id": memo_id, "memo": data.get("memo")}
+
+
+@mcp.tool()
+def delete_memo(memo_id: str) -> dict[str, Any]:
+    """
+    メモを削除する。
+
+    Args:
+        memo_id: 削除対象のメモID
+    """
+    with _client() as c:
+        resp = c.delete(f"/api/v1/memos/{memo_id}")
+        if resp.status_code == 404:
+            raise ValueError(f"メモが見つかりません: {memo_id}")
+        resp.raise_for_status()
+
+    return {"id": memo_id, "deleted": True}
+
+
+if __name__ == "__main__":
+    # MCP_TRANSPORT 環境変数で stdio / streamable-http を切り替える。
+    # 詳細は shared/runner.py を参照。
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from shared.runner import run_server
+
+    run_server(mcp)
