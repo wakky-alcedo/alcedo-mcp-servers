@@ -103,3 +103,25 @@ def add_memo(
         result = resp.json()
 
     return {"id": memo_id, "body": body, "result": result}
+
+
+@mcp.tool()
+def update_memo(memo_id: str, body: str) -> dict[str, Any]:
+    """
+    既存のメモ本文を更新する。
+
+    Args:
+        memo_id: 更新対象のメモID
+        body: 更新後のメモ本文
+
+    Returns:
+        更新後のメモ情報
+    """
+    with _client() as c:
+        resp = c.patch(f"/api/v1/memos/{memo_id}", json={"body": body})
+        if resp.status_code == 404:
+            raise ValueError(f"メモが見つかりません: {memo_id}")
+        resp.raise_for_status()
+        data = resp.json()
+
+    return {"id": memo_id, "memo": data.get("memo")}
