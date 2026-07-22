@@ -63,3 +63,43 @@ def list_memos(limit: int = 50, since: Optional[str] = None) -> dict[str, Any]:
 
     memos = data.get("memos", [])
     return {"count": len(memos), "memos": memos, "next_cursor": data.get("nextCursor")}
+
+
+@mcp.tool()
+def add_memo(
+    body: str,
+    source_url: Optional[str] = None,
+    source_title: Optional[str] = None,
+) -> dict[str, Any]:
+    """
+    新しいメモを追加する。
+
+    Args:
+        body: メモ本文（必須）
+        source_url: 出典URL。なければ省略可
+        source_title: 出典タイトル。なければ省略可
+
+    Returns:
+        作成したメモのID等
+    """
+    memo_id = str(uuid4())
+    now = _now_iso()
+    payload = {
+        "upserts": [
+            {
+                "id": memo_id,
+                "body": body,
+                "sourceUrl": source_url,
+                "sourceTitle": source_title,
+                "version": 1,
+                "createdAt": now,
+                "updatedAt": now,
+            }
+        ]
+    }
+    with _client() as c:
+        resp = c.post("/api/v1/sync/memos", json=payload)
+        resp.raise_for_status()
+        result = resp.json()
+
+    return {"id": memo_id, "body": body, "result": result}
