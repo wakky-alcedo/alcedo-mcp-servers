@@ -93,6 +93,7 @@ def add_task(
     due_at: Optional[str] = None,
     due_time: Optional[str] = None,
     description: Optional[str] = None,
+    parent_id: Optional[str] = None,
 ) -> dict[str, Any]:
     """
     新しいタスクを追加する。
@@ -105,10 +106,20 @@ def add_task(
         due_at: 期限日 (ISO 8601, 例: "2026-07-01") 。なければ省略可
         due_time: 期限時刻 (例: "18:00")。なければ省略可
         description: タスクの詳細説明
+        parent_id: 親タスクのID（list_tasksで取得したid）。指定するとそのタスクの
+            サブタスクとして作成される。省略するとトップレベルのタスクになる。
 
     Returns:
         作成したタスクのID等
     """
+    if parent_id is not None:
+        with _client() as c:
+            resp = c.get("/api/v1/tasks")
+            resp.raise_for_status()
+            parent = _find_task_recursive(resp.json().get("tasks", []), parent_id)
+        if parent is None:
+            raise ValueError(f"親タスクが見つかりません: {parent_id}")
+
     task_id = str(uuid4())
     payload = {
         "upserts": [
@@ -121,6 +132,7 @@ def add_task(
                 "priority": priority,
                 "dueAt": due_at,
                 "dueTime": due_time,
+                "parentId": parent_id,
                 "status": "todo",
                 "updatedAt": _now_iso(),
                 "version": 1,
